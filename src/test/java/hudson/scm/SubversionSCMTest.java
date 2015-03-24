@@ -63,6 +63,7 @@ import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc.SVNStatus;
 import org.tmatesoft.svn.core.wc.SVNWCUtil;
 
+import javax.annotation.Nonnull;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -1706,5 +1707,26 @@ public class SubversionSCMTest extends AbstractSubversionTest {
 
         // should detect change
         assertTrue(p.poll(StreamTaskListener.fromStdout()).hasChanges());
+    }
+
+    @TestExtension("testPollingWithContributedEnvironment")
+    public static class TestEnvironmentContributor extends EnvironmentContributor {
+        public static String REPO = "";
+
+        @Override
+        public void buildEnvironmentFor(@Nonnull Job j, @Nonnull EnvVars envs, @Nonnull TaskListener listener) {
+            envs.put("REPO", REPO);
+        }
+    }
+
+    public void testPollingWithContributedEnvironment() throws Exception {
+        TestEnvironmentContributor.REPO = loadSvnRepo().getLocations()[0].getURL();
+
+        FreeStyleProject p = createFreeStyleProject();
+        p.setScm(new SubversionSCM("${REPO}"));
+        buildAndAssertSuccess(p);
+
+        PollingResult poll = p.poll(createTaskListener());
+        assertFalse("Polling shouldn't have any changes.", poll.hasChanges());
     }
 }    

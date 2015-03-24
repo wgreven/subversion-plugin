@@ -1392,7 +1392,7 @@ public class SubversionSCM extends SCM implements Serializable {
 
         final Map<String,ISVNAuthenticationProvider> authProviders = new LinkedHashMap<String,
                 ISVNAuthenticationProvider>();
-        for (ModuleLocation loc: getLocations()) {
+        for (ModuleLocation loc: getLocations(project.getEnvironment(null, listener), null)) {
             String url;
             try {
                 url = loc.getExpandedLocation(project).getSVNURL().toDecodedString();
@@ -2935,6 +2935,7 @@ public class SubversionSCM extends SCM implements Serializable {
         public ModuleLocation getExpandedLocation(Job<?, ?> project) {
             String url = this.getURL();
             String returnURL = url;
+
             for (JobProperty property : project.getProperties().values()) {
                 if (property instanceof ParametersDefinitionProperty) {
                     ParametersDefinitionProperty pdp = (ParametersDefinitionProperty) property;
